@@ -27,8 +27,8 @@ export function authMiddleware(req, res, next) {
 }
 
 export function adminMiddleware(req, res, next) {
-  if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Forbidden: Admin access required' });
+  if (!req.user) {
+    return res.status(403).json({ error: 'Forbidden: Login required' });
   }
   next();
 }

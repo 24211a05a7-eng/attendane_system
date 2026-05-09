@@ -25,7 +25,8 @@ db.exec(`
     password_hash TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     last_login DATETIME,
-    is_active INTEGER DEFAULT 1
+    is_active INTEGER DEFAULT 1,
+    role TEXT DEFAULT 'user'
   );
 
   CREATE TABLE IF NOT EXISTS otp_codes (
@@ -110,7 +111,23 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
+
+  CREATE TABLE IF NOT EXISTS settings (
+    config_key TEXT PRIMARY KEY,
+    config_value TEXT,
+    config_description TEXT
+  );
+
+  INSERT OR IGNORE INTO settings (config_key, config_value, config_description) 
+  VALUES ('admin_pin', '1234', '4-digit PIN for admin access');
 `);
+
+// Attempt to add role column if table already exists
+try {
+  db.exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'");
+} catch (e) {
+  // Column likely already exists
+}
 
 // ── Helper Functions ──
 
@@ -314,17 +331,38 @@ export function getInterviewHistory(userId, limit = 10) {
 }
 
 export function getDashboardSummary(userId) {
-  // 1. Question Stats
-  const questionStats = db.prepare(`
-    SELECT 
-      COUNT(*) as solvedTotal,
-      COUNT(CASE WHEN category = 'dsa' THEN 1 END) as solvedDsa,
-      COUNT(CASE WHEN category = 'aptitude' THEN 1 END) as solvedAptitude,
-      COUNT(CASE WHEN category = 'technical' THEN 1 END) as solvedTech
-    FROM user_progress p
-    JOIN questions q ON p.question_id = q.id
-    WHERE p.user_id = ? AND p.status = 'solved'
-  `).get(userId);
+  // 1. Fetch user progress to get the JSON array of solved questions
+  const progressRow = db.prepare('SELECT questions_solved, last_activity FROM user_progress WHERE user_id = ?').get(userId);
+  const solvedArray = progressRow && progressRow.questions_solved ? JSON.parse(progressRow.questions_solved) : [];
+  
+  let questionStats = { solvedTotal: 0, solvedDsa: 0, solvedAptitude: 0, solvedTech: 0 };
+  let qAct = [];
+
+  if (solvedArray.length > 0) {
+    // Generate placeholders for IN clause
+    const placeholders = solvedArray.map(() => '?').join(',');
+    
+    questionStats = db.prepare(`
+      SELECT 
+        COUNT(*) as solvedTotal,
+        COUNT(CASE WHEN category = 'dsa' THEN 1 END) as solvedDsa,
+        COUNT(CASE WHEN category = 'aptitude' THEN 1 END) as solvedAptitude,
+        COUNT(CASE WHEN category = 'technical' THEN 1 END) as solvedTech
+      FROM questions
+      WHERE id IN (${placeholders})
+    `).get(...solvedArray);
+    
+    // For recent activity, use the last_activity timestamp for all recent questions
+    const recentQuestions = db.prepare(`
+      SELECT 'question' as type, title as label 
+      FROM questions WHERE id IN (${placeholders}) LIMIT 5
+    `).all(...solvedArray);
+    
+    qAct = recentQuestions.map(q => ({
+        ...q,
+        time: progressRow.last_activity || new Date().toISOString()
+    }));
+  }
 
   // 2. Latest Resume Score
   const resumeStats = db.prepare(`
@@ -341,15 +379,7 @@ export function getDashboardSummary(userId) {
     WHERE user_id = ?
   `).get(userId);
 
-  // 4. Recent Activity
-  const activities = [];
-  
-  const qAct = db.prepare(`
-    SELECT 'question' as type, q.title as label, p.last_updated as time 
-    FROM user_progress p JOIN questions q ON p.question_id = q.id 
-    WHERE p.user_id = ? AND p.status = 'solved' ORDER BY p.last_updated DESC LIMIT 5
-  `).all(userId);
-  
+  // 4. Recent Activity (Resume and Interview)
   const rAct = db.prepare(`
     SELECT 'resume' as type, filename as label, created_at as time 
     FROM resume_analyses WHERE user_id = ? ORDER BY created_at DESC LIMIT 5

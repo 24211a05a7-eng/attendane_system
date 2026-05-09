@@ -344,6 +344,39 @@
 
         <button class="login-primary-btn" id="signup-submit-btn" onclick="handleSignup()">CREATE ACCOUNT</button>
         </div>
+
+        <!-- STATE 4: OTP VERIFICATION -->
+        <div id="view-otp" class="login-view">
+            <button class="login-back-btn" onclick="resetToWelcome()">←</button>
+            <div class="login-heading" style="margin-top:24px;">Verify it's you</div>
+            <div class="login-subheading">Enter the 4-digit code sent to <br><strong class="lime" id="otp-sent-to"></strong></div>
+            
+            <div class="login-otp-group" id="otp-box-container">
+                <input type="text" class="login-otp-box" maxlength="1" autofocus>
+                <input type="text" class="login-otp-box" maxlength="1">
+                <input type="text" class="login-otp-box" maxlength="1">
+                <input type="text" class="login-otp-box" maxlength="1">
+            </div>
+            
+            <div id="otp-error-msg" style="color:#FF4E4E; font-size:13px; text-align:center; margin-bottom:12px; display:none;"></div>
+
+            <button class="login-primary-btn" id="otp-verify-btn" onclick="verifyOTP(this)" disabled>VERIFY & LOGIN</button>
+            
+            <div class="login-resend-text">
+                Didn't receive it? <span id="resend-timer">00:30</span>
+                <a href="#" id="resend-link" style="display:none;" onclick="sendOTP(document.querySelector('.login-primary-btn')); return false;">Resend Code</a>
+            </div>
+        </div>
+
+        <!-- STATE 5: SUCCESS -->
+        <div id="view-success" class="login-view" style="text-align:center;">
+            <div class="login-success-circle">
+                <div class="login-success-check"></div>
+            </div>
+            <div class="login-heading" style="margin-top:24px;">You're in!</div>
+            <div class="login-subheading">Welcome to PlaceNix.ai, <strong class="lime" id="success-user-name"></strong>. Let's get you placed.</div>
+        </div>
+
     </div>
     </div>
     <!-- ════ PlaceNix Voice Assistant Widget ════ -->
