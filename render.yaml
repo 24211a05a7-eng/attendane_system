@@ -2,6 +2,7 @@ services:
   - type: web
     name: placenix
     env: node
+    plan: free
     buildCommand: npm install --include=dev && npm run build
     startCommand: npm run dev:backend
     envVars:
