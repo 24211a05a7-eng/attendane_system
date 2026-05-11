@@ -39,7 +39,7 @@ const distPath = path.join(__dirname, '../dist');
 app.use(express.static(distPath));
 
 // Catch-all route to serve index.html for any unmatched routes (SPA fallback)
-app.get('*', (req, res) => {
+app.get(/(.*)/, (req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
 
