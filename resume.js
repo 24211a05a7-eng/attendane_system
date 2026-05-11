@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function analyzeResumeText(text, fileName) {
-        const response = await fetch('http://localhost:3000/api/resume/analyze', {
+        const response = await fetch('/api/resume/analyze', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -328,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchHistory() {
         if (!localStorage.getItem('placenix_jwt')) return;
         try {
-            const response = await fetch('http://localhost:3000/api/resume/history', {
+            const response = await fetch('/api/resume/history', {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('placenix_jwt')}` }
             });
             if (response.ok) {

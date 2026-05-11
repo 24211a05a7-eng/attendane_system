@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const response = await fetch(`http://localhost:3000/api/admin${endpoint}`, {
+            const response = await fetch(`/api/admin${endpoint}`, {
                 ...options,
                 headers: { ...defaultHeaders, ...options.headers }
             });

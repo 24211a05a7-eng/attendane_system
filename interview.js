@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
         typingIndicator.style.display = 'flex';
 
         try {
-            const response = await fetch('http://localhost:3000/api/interview/feedback', {
+            const response = await fetch('/api/interview/feedback', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
             feedback: { items: "Completed " + currentRound + " round." }
         };
         try {
-            await fetch('http://localhost:3000/api/interview/save', {
+            await fetch('/api/interview/save', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

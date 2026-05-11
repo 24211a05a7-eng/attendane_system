@@ -2,7 +2,7 @@ const QuestionBankLogic = {
 
   async getAllQuestions() {
     try {
-      const response = await fetch('http://localhost:3000/api/questions');
+      const response = await fetch('/api/questions');
       return await response.json();
     } catch (err) {
       console.error('Fetch Error:', err);
@@ -20,7 +20,7 @@ const QuestionBankLogic = {
       if (filters.search) params.append('search', filters.search);
       if (filters.company && filters.company !== 'all' && filters.company !== '') params.append('company', filters.company);
 
-      const response = await fetch(`http://localhost:3000/api/questions?${params.toString()}`);
+      const response = await fetch(`/api/questions?${params.toString()}`);
       let questions = await response.json();
 
       return this.sortQuestions(questions, filters.sortBy);
